@@ -46,7 +46,7 @@ function _webform_edit_node($component) {
     '#weight' => -1,
     '#element_validate' => array('_webform_edit_validate_node'),
   );
-  $form['extra']['full'] = array(
+  $form['extra']['view_mode'] = array(
     '#type' => 'radios',
     '#title' => t('Display Mode'),
     '#default_value' => $component['extra']['view_mode'],
@@ -86,15 +86,19 @@ function _webform_edit_validate_node($element, &$form_state) {
  * Implements _webform_render_component().
  */
 function _webform_render_node($component, $value = NULL, $filter = TRUE) {
-  dpm($component);
   $node = node_load($component['value']);
   $content = node_view($node, $component['extra']['view_mode']);
+
+  // If there is a read-more link, default that to a new browser window.
+  if (!empty($content['links']['node']['#links']['node-readmore'])) {
+    $content['links']['node']['#links']['node-readmore']['attributes']['target'] = '_new';
+  }
 
   $element = array(
     '#type' => 'markup',
     '#title' => $component['extra']['title'] ? check_plain($node->title) : $component['name'],
     '#weight' => $component['weight'],
-    '#markup' => render($content['body']),
+    '#markup' => render($content['body']) . render($content['links']),
     '#input_format' => 'html',
     '#theme_wrappers' => array('webform_element'),
     '#webform_component' => $component,
@@ -105,8 +109,6 @@ function _webform_render_node($component, $value = NULL, $filter = TRUE) {
 }
 
 function theme_webform_display_node($variables) {
-  dpm($element);
   $element = $variables['element'];
-
   return $element['#format'] == 'html' ? check_plain($element['#markup']) : $element['#markup'];
 }
