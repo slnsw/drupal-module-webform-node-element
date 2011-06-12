@@ -1,0 +1,22 @@
+<?php
+/**
+ *
+ */
+// function webform_node_element
+
+function webform_node_element_webform_component_info() {
+  $components = array();
+  $components['node'] = array(
+   'label' => t('Node'),
+   'description' => t('Displays node body content in the form; does not render a field.'),
+   'features' => array(
+     'csv' => FALSE,
+     'email' => FALSE,
+     'required' => FALSE,
+     'conditional' => FALSE,
+     'title_display' => FALSE,
+   ),
+   'file' => 'components/node.inc'
+  );
+  return $components;
+}
