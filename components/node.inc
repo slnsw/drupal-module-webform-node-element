@@ -40,7 +40,7 @@ function _webform_edit_node($component) {
   $form['value'] = array(
     '#type' => 'textfield',
     '#size' => 5,
-    '#title' => t('Node ID'),
+    '#title' => t('Node'),
     '#default_value' => $component['value'],
     '#description' => t('Enter a valid node id, whose body will be shown as markup in the webform.') . theme('webform_token_help'),
     '#weight' => -1,
@@ -66,6 +66,13 @@ function _webform_edit_node($component) {
   $form['extra']['description'] = array();
   $form['display'] = array('#type' => 'markup'); // Hide the display options.
 
+  // If ctools is present, use node title autocomplete.
+  if (module_exists('ctools')) {
+    $form['value']['#description'] = t('Enter a valid node id, or start typing to find the node whose body will be shown as markup in the webform.') . theme('webform_token_help');
+    $form['value']['#autocomplete_path'] = 'ctools/autocomplete/node';
+    unset($form['value']['#size']);
+  }
+
   return $form;
 }
 
@@ -74,9 +81,18 @@ function _webform_edit_node($component) {
  */
 function _webform_edit_validate_node($element, &$form_state) {
   if (!empty($element['#value'])) {
+
+    // If ctools, the value might be in the form of "node title [nid: N]".
+    if (module_exists('ctools')) {
+      _webform_node_autocomplete_validate($element);
+    }
+
     $node = node_load($element['#value']);
-    if (empty($node->nid)) {
-      form_error($element, t('You must enter a valid node id.'));
+    if (empty($node->nid) || (empty($node->status) && !user_access('administer nodes'))) {
+      form_error($element, t('Invalid node'));
+    }
+    else {
+      $form_state['values']['value'] = $node->nid;
     }
   }
   return TRUE;
@@ -87,6 +103,14 @@ function _webform_edit_validate_node($element, &$form_state) {
  */
 function _webform_render_node($component, $value = NULL, $filter = TRUE) {
   $node = node_load($component['value']);
+
+  // Add a bit of error checking; the target node may have been deleted.
+  if (empty($node->nid)) {
+    drupal_set_message(t('Unable to load referenced node id !nid', array('!nid' => $component['value'])), 'error');
+    return array();
+  }
+
+  // All good, render the node body in the chosen format.
   $content = node_view($node, $component['extra']['view_mode']);
 
   // If there is a read-more link, default that to a new browser window.
@@ -108,7 +132,44 @@ function _webform_render_node($component, $value = NULL, $filter = TRUE) {
   return $element;
 }
 
+/**
+ * Overridable theme function.
+ */
 function theme_webform_display_node($variables) {
   $element = $variables['element'];
   return $element['#format'] == 'html' ? check_plain($element['#markup']) : $element['#markup'];
+}
+
+/**
+ * Helper to pull apart a possible ctools node autocomplete submission.
+ *
+ * This is lifted verbatim from the ctools_node_content_type_edit_form_validate()
+ * function at http://drupalcontrib.org/api/drupal/contributions--ctools--plugins--content_types--node--node.inc/7/source
+ *
+ * @param &$element
+ *   A reference to the form element submitted by the user.
+ */
+function _webform_node_autocomplete_validate(&$element) {
+  $nid = $element['#value'];
+  $preg_matches = array();
+
+  $match = preg_match('/\[id: (\d+)\]/', $nid, $preg_matches);
+  if (!$match) {
+    $match = preg_match('/^id: (\d+)/', $nid, $preg_matches);
+  }
+
+  if ($match) {
+    $nid = $preg_matches[1];
+  }
+  if (is_numeric($nid)) {
+    $node = db_query('SELECT nid FROM {node} WHERE nid = :nid', array(':nid' => $nid))->fetchObject();
+  }
+  else {
+    $node = db_query('SELECT nid FROM {node} WHERE LOWER(title) = LOWER(:title)', array(':title' => $nid))->fetchObject();
+  }
+  if ($node) {
+    $element['#value'] = $node->nid;
+  }
+
+  return;
 }
