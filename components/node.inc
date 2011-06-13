@@ -15,6 +15,7 @@ function _webform_defaults_node() {
     'weight' => 0,
     'value' => '',
     'extra' => array(
+      'nid' => 0,
       'title' => 0,
       'view_mode' => 'full',
     ),
@@ -45,6 +46,10 @@ function _webform_edit_node($component) {
     '#description' => t('Enter a valid node id, whose body will be shown as markup in the webform.') . theme('webform_token_help'),
     '#weight' => -1,
     '#element_validate' => array('_webform_edit_validate_node'),
+  );
+  $form['extra']['nid'] = array(
+    '#type' => 'hidden',
+    '#default_value' => $component['extra']['nid'],
   );
   $form['extra']['view_mode'] = array(
     '#type' => 'radios',
@@ -91,9 +96,9 @@ function _webform_edit_validate_node($element, &$form_state) {
     if (empty($node->nid) || (empty($node->status) && !user_access('administer nodes'))) {
       form_error($element, t('Invalid node'));
     }
-    else {
-      $form_state['values']['value'] = $node->nid;
-    }
+
+    // Store the node id that we'll use. #value is just for show :-)
+    $form_state['values']['extra']['nid'] = $node->nid;
   }
   return TRUE;
 }
@@ -102,11 +107,11 @@ function _webform_edit_validate_node($element, &$form_state) {
  * Implements _webform_render_component().
  */
 function _webform_render_node($component, $value = NULL, $filter = TRUE) {
-  $node = node_load($component['value']);
+  $node = node_load($component['extra']['nid']);
 
   // Add a bit of error checking; the target node may have been deleted.
   if (empty($node->nid)) {
-    drupal_set_message(t('Unable to load referenced node id !nid', array('!nid' => $component['value'])), 'error');
+    drupal_set_message(t('Unable to load referenced node id !nid', array('!nid' => $component['extra']['nid'])), 'error');
     return array();
   }
 
