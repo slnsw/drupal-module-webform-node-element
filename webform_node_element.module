@@ -10,11 +10,12 @@ function webform_node_element_webform_component_info() {
    'label' => t('Node'),
    'description' => t('Displays node body content in the form; does not render a field.'),
    'features' => array(
-     'csv' => FALSE,
-     'email' => FALSE,
+     'csv' => TRUE,
+     'email' => TRUE,
      'required' => FALSE,
      'conditional' => FALSE,
-     'title_display' => FALSE,
+     'title_display' => TRUE,
+     'title_inline' => TRUE,
    ),
    'file' => 'components/node.inc'
   );
