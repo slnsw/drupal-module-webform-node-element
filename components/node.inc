@@ -38,6 +38,16 @@ function _webform_theme_node() {
  */
 function _webform_edit_node($component) {
   $form = array();
+
+  // Load the available view modes for 'node' entities, so users can also
+  // choose custom ones if they have defined any.
+  // Maybe RSS and search results shouldn't be listed. Maybe. Dunno.
+  $view_modes = array();
+  $data = entity_get_info('node');
+  foreach ($data['view modes'] as $key => $value) {
+    $view_modes[$key] = $value['label'];
+  }
+
   $form['value'] = array(
     '#type' => 'textfield',
     '#size' => 5,
@@ -56,10 +66,7 @@ function _webform_edit_node($component) {
     '#title' => t('Display Mode'),
     '#default_value' => $component['extra']['view_mode'],
     '#description' => t('Choose how you want the referenced node to be displayed.'),
-    '#options' => array(
-      'teaser' => t('Display the node teaser'),
-      'full' => t('Display the full node body'),
-    ),
+    '#options' => $view_modes,
   );
   $form['extra']['title'] = array(
     '#type' => 'checkbox',
