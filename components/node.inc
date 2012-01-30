@@ -127,7 +127,7 @@ function _webform_render_node($component, $value = NULL, $filter = TRUE) {
     '#type' => 'markup',
     '#title' => $component['extra']['title'] ? check_plain($node->title) : $component['name'],
     '#weight' => $component['weight'],
-    '#markup' => render($content['body']) . render($content['links']),
+    '#markup' => render($content),
     '#input_format' => 'html',
     '#theme_wrappers' => array('webform_element'),
     '#webform_component' => $component,
