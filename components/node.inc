@@ -145,6 +145,48 @@ function _webform_render_node($component, $value = NULL, $filter = TRUE) {
 }
 
 /**
+ * Implements _webform_analysis_component().
+ */
+function _webform_analysis_node($component, $sids = array()) {
+  $node = node_load($component['extra']['nid']);
+  return array(
+    array(t('Nid'), t('<a href="!link">@nid</a>', array('!link' => url('node/'. $node->nid), '@nid' => $node->nid))),
+    array(t('Title'), check_plain($node->title)),
+    array(t('Type'), $node->type),
+    array(t('Display Mode'), $component['extra']['view_mode'])
+  );
+}
+
+/**
+ * Implements _webform_table_component().
+ */
+function _webform_table_node($component, $value) {
+  $node = node_load($component['extra']['nid']);
+  $content = node_view($node, $component['extra']['view_mode']);
+  return render($content);
+}
+
+/**
+ * Implements _webform_csv_headers_component().
+ */
+function _webform_csv_headers_node($component, $export_options) {
+  $header = array();
+  $header[0] = '';
+  $header[1] = '';
+  $header[2] = $component['name'];
+  return $header;
+}
+
+/**
+ * Implements _webform_csv_data_component().
+ */
+function _webform_csv_data_node($component, $export_options, $value) {
+  $node = node_load($component['extra']['nid']);
+  $content = node_view($node, $component['extra']['view_mode']);
+  return render($content);
+}
+
+/**
  * Overridable theme function.
  */
 function theme_webform_display_node($variables) {
