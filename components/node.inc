@@ -145,6 +145,24 @@ function _webform_render_node($component, $value = NULL, $filter = TRUE) {
 }
 
 /**
+ * Implements _webform_display_component().
+ */
+function _webform_display_node($component, $value, $format = 'text') {
+  $node = node_load($component['extra']['nid']);
+  $content = node_view($node, $component['extra']['view_mode']);
+
+  return array(
+    '#title' => $component['name'],
+    '#weight' => $component['weight'],
+    '#theme' => 'webform_display_node',
+    '#theme_wrappers' => array('webform_element'),
+    '#format' => 'text',
+    '#markup' => render($content),
+    '#webform_component' => $component,
+  );
+}
+
+/**
  * Implements _webform_analysis_component().
  */
 function _webform_analysis_node($component, $sids = array()) {
