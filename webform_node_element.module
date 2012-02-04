@@ -1,8 +1,7 @@
 <?php
 /**
- *
+ * Implements hook_webform_component_info()
  */
-// function webform_node_element
 
 function webform_node_element_webform_component_info() {
   $components = array();
