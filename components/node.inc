@@ -27,6 +27,9 @@ function _webform_defaults_node() {
  */
 function _webform_theme_node() {
   return array(
+    'webform_node_element_node' => array(
+      'render element' => 'element',
+    ),
     'webform_display_node' => array(
       'render element' => 'element',
     ),
@@ -122,7 +125,6 @@ function _webform_render_node($component, $value = NULL, $filter = TRUE) {
     return array();
   }
 
-  // All good, render the node body in the chosen format.
   $content = node_view($node, $component['extra']['view_mode']);
 
   // If there is a read-more link, default that to a new browser window.
@@ -131,16 +133,16 @@ function _webform_render_node($component, $value = NULL, $filter = TRUE) {
   }
 
   $element = array(
-    '#type' => 'markup',
+    '#type' => 'hidden',
     '#title' => $component['extra']['title'] ? check_plain($node->title) : $component['name'],
     '#weight' => $component['weight'],
-    '#markup' => render($content),
+    '#default_value' => render($content),
     '#input_format' => 'html',
-    '#theme_wrappers' => array('webform_element'),
+    '#theme_wrappers' => array('webform_node_element_node'),
     '#webform_component' => $component,
   );
 
-  $element['#value'] = $element['#markup'];
+  $element['#field_value'] = $element['#default_value'];
   return $element;
 }
 
@@ -155,7 +157,7 @@ function _webform_display_node($component, $value, $format = 'text') {
     '#title' => $component['name'],
     '#weight' => $component['weight'],
     '#theme' => 'webform_display_node',
-    '#theme_wrappers' => array('webform_element'),
+    '#theme_wrappers' => array('webform_display_node'),
     '#format' => 'text',
     '#markup' => render($content),
     '#webform_component' => $component,
@@ -181,6 +183,7 @@ function _webform_analysis_node($component, $sids = array()) {
 function _webform_table_node($component, $value) {
   $node = node_load($component['extra']['nid']);
   $content = node_view($node, $component['extra']['view_mode']);
+
   return render($content);
 }
 
@@ -201,6 +204,7 @@ function _webform_csv_headers_node($component, $export_options) {
 function _webform_csv_data_node($component, $export_options, $value) {
   $node = node_load($component['extra']['nid']);
   $content = node_view($node, $component['extra']['view_mode']);
+
   return render($content);
 }
 
@@ -244,4 +248,75 @@ function _webform_node_autocomplete_validate(&$element) {
   }
 
   return;
+}
+
+/**
+ * Override for theme_webform_element().
+ *
+ * This renders a webform node element and tacks the chosen node content
+ * onto the end of the hidden form field.
+ */
+function theme_webform_node_element_node($variables) {
+  // Ensure defaults.
+  $variables['element'] += array(
+    '#title_display' => 'before',
+  );
+
+  $element = $variables['element'];
+
+  // You know what? We're always a node.
+  $type = 'node';
+  $parents = str_replace('_', '-', implode('--', array_slice($element['#parents'], 1)));
+
+  $wrapper_classes = array(
+   'form-item',
+   'webform-component',
+   'webform-component-' . $type,
+  );
+
+  if (isset($element['#title_display']) && $element['#title_display'] == 'inline') {
+    $wrapper_classes[] = 'webform-container-inline';
+  }
+  $output = '<div class="' . implode(' ', $wrapper_classes) . '" id="webform-component-' . $parents . '">' . "\n";
+  $required = !empty($element['#required']) ? '<span class="form-required" title="' . t('This field is required.') . '">*</span>' : '';
+
+  // If #title is not set, we don't display any label or required marker.
+  if (!isset($element['#title'])) {
+    $element['#title_display'] = 'none';
+  }
+  $prefix = isset($element['#field_prefix']) ? '<span class="field-prefix">' . _webform_filter_xss($element['#field_prefix']) . '</span> ' : '';
+  $suffix = isset($element['#field_suffix']) ? '<span class="field-suffix">' . _webform_filter_xss($element['#field_suffix']) . '</span>' : '';
+
+  // Because we're a hidden field, the rendered node content won't show up
+  // on the page. However, #field_value congtains a copy. Tack that on to
+  // the element output here.
+  $value  = isset($element['#field_value']) ? '<span class="field-value">' . $element['#field_value'] . '</span> ' : '';
+
+  switch ($element['#title_display']) {
+    case 'inline':
+    case 'before':
+    case 'invisible':
+      $output .= ' ' . theme('form_element_label', $variables);
+      $output .= ' ' . $prefix . $element['#children'] . $value . $suffix . "\n";
+      break;
+
+    case 'after':
+      $output .= ' ' . $prefix . $element['#children'] . $value . $suffix;
+      $output .= ' ' . theme('form_element_label', $variables) . "\n";
+      break;
+
+    case 'none':
+    case 'attribute':
+      // Output no label and no required marker, only the children.
+      $output .= ' ' . $prefix . $element['#children'] . $value . $suffix . "\n";
+      break;
+  }
+
+  if (!empty($element['#description'])) {
+    $output .= ' <div class="description">' . $element['#description'] . "</div>\n";
+  }
+
+  $output .= "</div>\n";
+
+  return $output;
 }
