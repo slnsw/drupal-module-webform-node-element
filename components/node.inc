@@ -27,6 +27,9 @@ function _webform_defaults_node() {
  */
 function _webform_theme_node() {
   return array(
+    'webform_node_element_node' => array(
+      'render element' => 'element',
+    ),
     'webform_display_node' => array(
       'render element' => 'element',
     ),
@@ -116,25 +119,86 @@ function _webform_render_node($component, $value = NULL, $filter = TRUE) {
   }
 
   // All good, render the node body in the chosen format.
-  $content = node_view($node, $component['extra']['view_mode']);
-
-  // If there is a read-more link, default that to a new browser window.
-  if (!empty($content['links']['node']['#links']['node-readmore'])) {
-    $content['links']['node']['#links']['node-readmore']['attributes']['target'] = '_new';
-  }
+  $component['#field_value'] = node_view($node, $component['extra']['view_mode']);
 
   $element = array(
-    '#type' => 'markup',
+    '#type' => 'hidden',
     '#title' => $component['extra']['title'] ? check_plain($node->title) : $component['name'],
     '#weight' => $component['weight'],
-    '#markup' => render($content['body']) . render($content['links']),
+    '#default_value' => $component['extra']['nid'],
     '#input_format' => 'html',
-    '#theme_wrappers' => array('webform_element'),
+    '#prefix' => _webform_node_element_prefix($component),
+    '#suffix' => _webform_node_element_suffix($component),
     '#webform_component' => $component,
   );
 
-  $element['#value'] = $element['#markup'];
+  if (isset($value)) {
+    $element['#default_value'] = $value[0];
+  }
+
   return $element;
+}
+
+/**
+ * Implements _webform_display_component().
+ */
+function _webform_display_node($component, $value, $format = 'text') {
+  $node = node_load($component['extra']['nid']);
+  $content = node_view($node, $component['extra']['view_mode']);
+
+  return array(
+    '#title' => $component['name'],
+    '#weight' => $component['weight'],
+    '#theme' => 'webform_display_node',
+    '#theme_wrappers' => array('webform_display_node'),
+    '#format' => 'text',
+    '#markup' => $content['body'] . $content['links'],
+    '#webform_component' => $component,
+  );
+}
+
+/**
+ * Implements _webform_analysis_component().
+ */
+function _webform_analysis_node($component, $sids = array()) {
+  $node = node_load($component['extra']['nid']);
+  return array(
+    array(t('Nid'), t('<a href="!link">@nid</a>', array('!link' => url('node/'. $node->nid), '@nid' => $node->nid))),
+    array(t('Title'), check_plain($node->title)),
+    array(t('Type'), $node->type),
+    array(t('Display Mode'), $component['extra']['view_mode'])
+  );
+}
+
+/**
+ * Implements _webform_table_component().
+ */
+function _webform_table_node($component, $value) {
+  $node = node_load($component['extra']['nid']);
+  $content = node_view($node, $component['extra']['view_mode']);
+
+  return $content['body'] . $content['links'];;
+}
+
+/**
+  * Implements _webform_csv_headers_component().
+  */
+function _webform_csv_headers_node($component, $export_options) {
+  $header = array();
+  $header[0] = '';
+  $header[1] = '';
+  $header[2] = $component['name'];
+  return $header;
+}
+
+/**
+ * Implements _webform_csv_data_component().
+ */
+function _webform_csv_data_node($component, $export_options, $value) {
+  $node = node_load($component['extra']['nid']);
+  $content = node_view($node, $component['extra']['view_mode']);
+
+  return $content['body'] . $content['links'];;
 }
 
 /**
@@ -158,23 +222,58 @@ function _webform_node_autocomplete_validate(&$element) {
   $nid = $element['#value'];
   $preg_matches = array();
 
-  $match = preg_match('/\[id: (\d+)\]/', $nid, $preg_matches);
+  $match = preg_match('/\[nid: (\d+)\]/', $nid, $preg_matches);
   if (!$match) {
-    $match = preg_match('/^id: (\d+)/', $nid, $preg_matches);
+    $match = preg_match('/^nid: (\d+)/', $nid, $preg_matches);
   }
 
   if ($match) {
     $nid = $preg_matches[1];
   }
   if (is_numeric($nid)) {
-    $node = db_query('SELECT nid FROM {node} WHERE nid = :nid', array(':nid' => $nid))->fetchObject();
+    $node = db_result(db_query("SELECT nid FROM {node} WHERE nid = %d", $nid));
   }
   else {
-    $node = db_query('SELECT nid FROM {node} WHERE LOWER(title) = LOWER(:title)', array(':title' => $nid))->fetchObject();
+    $node = db_result(db_query("SELECT nid FROM {node} WHERE LOWER(title) = LOWER('%s')", $nid));
   }
-  if ($node) {
-    $element['#value'] = $node->nid;
+
+  if (!empty($node)) {
+    $element['#value'] = $node;
   }
 
   return;
+}
+
+/**
+ * Generate a prefix for the node field.
+ *
+ * This can't be done using a theme wrapper on Drupal 6.x, so sadly this
+ * needs two helper functions. The actual rendered node content is added
+ * in the otherfucntion, _webform_node_element_suffix().
+ */
+function _webform_node_element_prefix($element) {
+  $output  = '<div class="form-item webform-component webform-component-node" id="webform-component-' . $element['form_key'] . '">' . "\n";
+  $output .= isset($element['#field_prefix']) ? '<span class="field-prefix">'. _webform_filter_xss($element['#field_prefix']) .'</span> ' : '';
+
+  return $output;
+}
+
+/**
+ * Generate a suffix for the node field.
+ *
+ * This can't be done using a theme wrapper on Drupal 6.x, so sadly this
+ * needs two helper functions. The actual rendered node content is added
+ * here.
+ */
+function _webform_node_element_suffix($element) {
+  $output = '';
+
+  // Because we're a hidden field, the rendered node content won't show up
+  // on the page. However, #field_value contains a copy. Prepend that on to
+  // the suffix output here.
+  $output .= isset($element['#field_value']) ? '<span class="field-value">' . $element['#field_value'] . '</span> ' : '';
+  $output .= isset($element['#field_suffix']) ? '<span class="field-suffix">'. _webform_filter_xss($element['#field_suffix']) .'</span>' : '';
+  $output .= "</div>\n";
+
+  return $output;
 }
