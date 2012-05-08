@@ -17,7 +17,7 @@ function _webform_defaults_node() {
     'extra' => array(
       'nid' => 0,
       'title' => 0,
-      'view_mode' => 'full',
+      'view_mode' => FALSE,
     ),
   );
 }
@@ -60,8 +60,8 @@ function _webform_edit_node($component) {
     '#default_value' => $component['extra']['view_mode'],
     '#description' => t('Choose how you want the referenced node to be displayed.'),
     '#options' => array(
-      'teaser' => t('Display the node teaser'),
-      'full' => t('Display the full node body'),
+      TRUE => t('Display the node teaser'),
+      FALSE => t('Display the full node body'),
     ),
   );
   $form['extra']['title'] = array(
@@ -166,7 +166,7 @@ function _webform_analysis_node($component, $sids = array()) {
     array(t('Nid'), t('<a href="!link">@nid</a>', array('!link' => url('node/'. $node->nid), '@nid' => $node->nid))),
     array(t('Title'), check_plain($node->title)),
     array(t('Type'), $node->type),
-    array(t('Display Mode'), $component['extra']['view_mode'])
+    array(t('Display Mode'), $component['extra']['view_mode'] ? t('Teaser') : t('Full'))
   );
 }
 
@@ -177,7 +177,7 @@ function _webform_table_node($component, $value) {
   $node = node_load($component['extra']['nid']);
   $content = node_view($node, $component['extra']['view_mode']);
 
-  return $content['body'] . $content['links'];;
+  return check_plain($content['body'] . $content['links']);
 }
 
 /**
