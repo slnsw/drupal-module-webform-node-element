@@ -14,6 +14,7 @@ function _webform_defaults_node() {
     'pid' => 0,
     'weight' => 0,
     'value' => '',
+    'private' => 0,
     'extra' => array(
       'nid' => 0,
       'title' => 0,
@@ -257,10 +258,6 @@ function _webform_node_autocomplete_validate(&$element) {
  * onto the end of the hidden form field.
  */
 function theme_webform_node_element_node($variables) {
-  // Ensure defaults.
-  $variables['element'] += array(
-    '#title_display' => 'before',
-  );
 
   $element = $variables['element'];
 
@@ -274,7 +271,7 @@ function theme_webform_node_element_node($variables) {
    'webform-component-' . $type,
   );
 
-  if (isset($element['#title_display']) && $element['#title_display'] == 'inline') {
+  if (isset($element['#webform_component']['extra']['title_display']) && $element['#webform_component']['extra']['title_display'] == 'inline') {
     $wrapper_classes[] = 'webform-container-inline';
   }
   $output = '<div class="' . implode(' ', $wrapper_classes) . '" id="webform-component-' . $parents . '">' . "\n";
@@ -282,7 +279,7 @@ function theme_webform_node_element_node($variables) {
 
   // If #title is not set, we don't display any label or required marker.
   if (!isset($element['#title'])) {
-    $element['#title_display'] = 'none';
+    $element['#webform_component']['extra']['title_display'] = 'none';
   }
   $prefix = isset($element['#field_prefix']) ? '<span class="field-prefix">' . _webform_filter_xss($element['#field_prefix']) . '</span> ' : '';
   $suffix = isset($element['#field_suffix']) ? '<span class="field-suffix">' . _webform_filter_xss($element['#field_suffix']) . '</span>' : '';
@@ -292,7 +289,7 @@ function theme_webform_node_element_node($variables) {
   // the element output here.
   $value  = isset($element['#field_value']) ? '<span class="field-value">' . $element['#field_value'] . '</span> ' : '';
 
-  switch ($element['#title_display']) {
+  switch ($element['#webform_component']['extra']['title_display']) {
     case 'inline':
     case 'before':
     case 'invisible':
