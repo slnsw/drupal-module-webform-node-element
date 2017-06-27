@@ -1,22 +1,24 @@
 <?php
+
 /**
- * Implements hook_webform_component_info()
+ * @file
+ * Contains webform_node_element.module.
  */
 
-function webform_node_element_webform_component_info() {
-  $components = array();
-  $components['node'] = array(
-   'label' => t('Node'),
-   'description' => t('Displays node body content in the form; does not render a field.'),
-   'features' => array(
-     'csv' => TRUE,
-     'email' => TRUE,
-     'required' => FALSE,
-     'conditional' => FALSE,
-     'title_display' => TRUE,
-     'title_inline' => TRUE,
-   ),
-   'file' => 'components/node.inc'
-  );
-  return $components;
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function webform_node_element_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    // Main module help for the webform_node_element module.
+    case 'help.page.webform_node_element':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('Displays a node as a webform element.') . '</p>';
+      return $output;
+
+    default:
+  }
 }
