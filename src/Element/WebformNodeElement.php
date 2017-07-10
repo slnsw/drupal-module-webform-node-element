@@ -19,7 +19,7 @@ class WebformNodeElement extends RenderElement {
     $class = get_class($this);
     return [
       '#pre_render' => [[$class, "preRenderWebformNodeElement"]],
-      '#nid' => NULL,
+      '#webform_node_element_nid' => NULL,
     ];
   }
 
@@ -35,7 +35,7 @@ class WebformNodeElement extends RenderElement {
   public static function preRenderWebformNodeElement(array $element) {
     $element['#markup'] = "";
 
-    $nid = $element['#nid'];
+    $nid = $element['#webform_node_element_nid'];
     $element_id = $element['#webform_id'];
 
     // Allow event subscribers to set the nid and display mode.

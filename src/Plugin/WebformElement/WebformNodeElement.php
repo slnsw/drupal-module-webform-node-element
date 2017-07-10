@@ -23,8 +23,7 @@ class WebformNodeElement extends WebformMarkupBase {
    */
   public function getDefaultProperties() {
     return parent::getDefaultProperties() + [
-      'markup' => '',
-      'nid' => NULL,
+      'webform_node_element_nid' => '',
     ];
   }
 
@@ -37,7 +36,7 @@ class WebformNodeElement extends WebformMarkupBase {
       '#title' => $this->t('Node Details'),
       '#type' => 'fieldset',
     ];
-    $form['node_element']['nid'] = [
+    $form['node_element']['webform_node_element_nid'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Node ID'),
       '#description' => $this->t('The ID of the node to render. The node will be displayed using the "webform_element" display mode. You can leave this empty and write an EventHandler to change the node or display mode dynamically.'),
