@@ -40,7 +40,7 @@ class WebformNodeElement extends WebformMarkupBase {
     $form['node_element']['nid'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Node ID'),
-      '#description' => $this->t('The ID of the node to render. Leave empty to listen to an event (tbd). Use a custom display mode called "webform_element".'),
+      '#description' => $this->t('The ID of the node to render. The node will be displayed using the "webform_element" display mode. You can leave this empty and write an EventHandler to change the node or display mode dynamically.'),
     ];
     return $form;
   }
