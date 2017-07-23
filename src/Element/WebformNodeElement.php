@@ -44,15 +44,20 @@ class WebformNodeElement extends RenderElement {
     $dispatcher->dispatch(WebformNodeElementPreRender::PRERENDER, $event);
 
     $nid = $event->getNid();
+    // This guarantees the nid is valid.
+    $nid = reset(\Drupal::entityQuery('node')->condition('nid', $nid)->execute());
+
     $display_mode = $event->getDisplayMode();
 
     if ($nid && $display_mode) {
       $node = \Drupal::entityManager()->getStorage('node')->load($nid);
-      $view_builder = \Drupal::entityManager()->getViewBuilder('node');
+      if ($node->access('view')) {
+        $view_builder = \Drupal::entityManager()->getViewBuilder('node');
 
-      if ($node && $view_builder) {
-        if ($render_array = $view_builder->view($node, $display_mode)) {
-          $element['#markup'] = \Drupal::service('renderer')->renderRoot($render_array);
+        if ($node && $view_builder) {
+          if ($render_array = $view_builder->view($node, $display_mode)) {
+            $element['#markup'] = \Drupal::service('renderer')->renderRoot($render_array);
+          }
         }
       }
     }
