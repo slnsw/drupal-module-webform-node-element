@@ -56,7 +56,7 @@ class WebformNodeElement extends RenderElement {
 
         if ($node && $view_builder) {
           if ($render_array = $view_builder->view($node, $display_mode)) {
-            $element['#markup'] = \Drupal::service('renderer')->renderRoot($render_array);
+            $element['#markup'] = \Drupal::service('renderer')->render($render_array, false);
           }
         }
       }
