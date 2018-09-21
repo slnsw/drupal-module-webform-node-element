@@ -45,7 +45,8 @@ class WebformNodeElement extends RenderElement {
 
     $nid = $event->getNid();
     // This guarantees the nid is valid.
-    $nid = reset(\Drupal::entityQuery('node')->condition('nid', $nid)->execute());
+    $nid_array = \Drupal::entityQuery('node')->condition('nid', $nid)->execute();
+    $nid = reset($nid_array);
 
     $display_mode = $event->getDisplayMode();
 
