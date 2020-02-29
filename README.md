@@ -42,7 +42,8 @@ CONFIGURATION
 When enabled this module provides a new type of element, 'Node', to be added
 to a webform. Once you add an element of type 'Node' you can enter the nid
 of the node that you want to display. When you view the webform the node will
-be displayed using the webform_element display mode.
+be displayed using the webform_element display mode if there is one, otherwise
+it will use the default display mode for the entity type.
 
 To dynamically set the nid or the display mode, an event is dispatched prior
 to rendering the element. Subscribe to the 

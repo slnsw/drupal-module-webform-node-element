@@ -51,9 +51,9 @@ class WebformNodeElement extends RenderElement {
     $display_mode = $event->getDisplayMode();
 
     if ($nid && $display_mode) {
-      $node = \Drupal::entityManager()->getStorage('node')->load($nid);
+      $node = \Drupal::entityTypeManager()->getStorage('node')->load($nid);
       if ($node->access('view')) {
-        $view_builder = \Drupal::entityManager()->getViewBuilder('node');
+        $view_builder = \Drupal::entityTypeManager()->getViewBuilder('node');
 
         if ($node && $view_builder) {
           if ($render_array = $view_builder->view($node, $display_mode)) {
