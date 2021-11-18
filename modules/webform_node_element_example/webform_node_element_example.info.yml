@@ -1,7 +1,7 @@
 name: Webform Node Element Example
 type: module
 description: Example module for webform_node_element.
-core: 8.x
+core_version_requirement: ^8 || ^9
 package: webform
 dependencies:
   - webform_node_element:webform_node_element

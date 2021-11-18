@@ -1,7 +1,7 @@
 name: Webform Node Element
 type: module
 description: Displays a node as a webform element.
-core: 8.x
+core_version_requirement: ^8 || ^9
 package: webform
 dependencies:
   - webform:webform
