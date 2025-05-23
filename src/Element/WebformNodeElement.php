@@ -2,15 +2,17 @@
 
 namespace Drupal\webform_node_element\Element;
 
-use Drupal\Core\Render\Element\RenderElement;
+use Drupal\Core\Render\Element\RenderElementBase;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\webform_node_element\Event\WebformNodeElementPreRender;
+
 
 /**
  * Provides a render element to display a node.
  *
  * @FormElement("webform_node_element")
  */
-class WebformNodeElement extends RenderElement {
+class WebformNodeElement extends RenderElementBase {
 
   /**
    * {@inheritdoc}
@@ -37,15 +39,13 @@ class WebformNodeElement extends RenderElement {
 
     $nid = $element['#webform_node_element_nid'];
     $element_id = $element['#webform_id'];
-
-    // Allow event subscribers to set the nid and display mode.
     $dispatcher = \Drupal::service('event_dispatcher');
-    $event = new WebformNodeElementPreRender($element_id, $nid, 'webform_element');
-    $dispatcher->dispatch(WebformNodeElementPreRender::PRERENDER, $event);
-
+    $event =  new WebformNodeElementPreRender($element_id, $nid, 'webform_element');
+    
+    $dispatcher->dispatch($event,WebformNodeElementPreRender::PRERENDER);
     $nid = $event->getNid();
     // This guarantees the nid is valid.
-    $nid_array = \Drupal::entityQuery('node')->condition('nid', $nid)->execute();
+    $nid_array = \Drupal::entityQuery('node')->condition('nid', $nid)->accessCheck(TRUE)->execute();
     $nid = reset($nid_array);
 
     $display_mode = $event->getDisplayMode();

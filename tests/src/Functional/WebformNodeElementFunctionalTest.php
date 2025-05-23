@@ -20,7 +20,7 @@ class WebformNodeElementFunctionalTest extends BrowserTestBase {
   /**
    * Test.
    */
-  public function setup() {
+  public function setup(): void{
     parent::setup();
     $this->drupalCreateContentType(['type' => 'article', 'name' => 'Basic Article']);
   }

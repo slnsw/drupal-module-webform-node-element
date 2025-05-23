@@ -2,7 +2,7 @@
 
 namespace Drupal\webform_node_element\Event;
 
-use Symfony\Component\EventDispatcher\Event;
+use Symfony\Contracts\EventDispatcher\Event;
 
 /**
  * Event dispatched prior to each webform_node_element being rendered.
