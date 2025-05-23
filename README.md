@@ -1,3 +1,5 @@
+NOTE: This is a fork of the [Webform Node Element Drupal module](https://www.drupal.org/project/webform_node_element) to incorporate [compatibility patches for Drupal 11](https://www.drupal.org/project/webform_node_element/issues/3495835).
+
 CONTENTS OF THIS FILE
 ---------------------
    
